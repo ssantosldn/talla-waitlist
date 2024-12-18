@@ -300,7 +300,7 @@ function WaitlistContent() {
                     />
                   </div>
                   <span style={{ color: `${COLORS.text}99` }} className="text-sm">
-                    Limited spots available
+                    Limited spots availablee
                   </span>
                 </div>
 
