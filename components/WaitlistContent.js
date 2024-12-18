@@ -227,7 +227,7 @@ function WaitlistContent() {
                   </h1>
                   
                   <p style={{ color: `${COLORS.text}CC` }} className="text-lg">
-                    Get early access to the next generation of social growth tools
+                    Get early access to the next generation of social growth tools.
                   </p>
                 </div>
 
@@ -300,7 +300,7 @@ function WaitlistContent() {
                     />
                   </div>
                   <span style={{ color: `${COLORS.text}99` }} className="text-sm">
-                    Limited spots availablee
+                    Limited spots available
                   </span>
                 </div>
 
