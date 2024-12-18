@@ -1,13 +1,25 @@
-name: Test Deploy
+name: Deploy to cPanel
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
-  test-job:
+  web-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Test Step
-        run: echo "Testing workflow"
+      
+      - name: Install Dependencies
+        run: npm install
+        
+      - name: Build
+        run: npm run build
+        
+      - name: 📂 Sync files
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./out/
+          server-dir: /home/selfycoc/usetalla.com/
