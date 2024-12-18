@@ -18,8 +18,8 @@ jobs:
       - name: 📂 Sync files
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
-          server: cloud620.thundercloud.uk
-          username: selfycoc
-          password: Mu07Ijc86e
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./out/
-          server-dir: /home/selfycoc/usetalla.com/ 
+          server-dir: /home/selfycoc/usetalla.com/
