@@ -1,0 +1,25 @@
+name: Deploy to cPanel
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  web-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Install Dependencies
+        run: npm install
+        
+      - name: Build
+        run: npm run build
+        
+      - name: 📂 Sync files
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: cloud620.thundercloud.uk
+          username: selfycoc
+          password: Mu07Ijc86e
+          local-dir: ./out/
+          server-dir: /home/selfycoc/usetalla.com/ 
