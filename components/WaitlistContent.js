@@ -35,9 +35,9 @@ function WaitlistContent() {
 
     const saveToGoogleSheets = async (email) => {
       try {
-        console.log('Attempting to save email:', email); // Debug log
+        console.log('Attempting to save email:', email);
     
-        const response = await fetch('/api/submit-email', {
+        const response = await fetch('/api/submit-email/route', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -243,7 +243,7 @@ function WaitlistContent() {
                     className="text-3xl md:text-4xl font-bold"
                     style={{ color: COLORS.main }}
                   >
-                    Join the Future.
+                    Join the Future
                   </h1>
                   
                   <p style={{ color: `${COLORS.text}CC` }} className="text-lg">
