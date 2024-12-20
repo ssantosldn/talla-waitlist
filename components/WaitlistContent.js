@@ -18,117 +18,83 @@ import Image from 'next/image';
 // Initialize EmailJS
 emailjs.init(process.env.NEXT_PUBLIC_EMAILJS_USER_ID);
 
+// Add Formspree endpoint - you'll get this after signing up
+const FORMSPREE_ENDPOINT = "https://formspree.io/f/xgvvwwkz";
+
 function WaitlistContent() {
     const [mounted, setMounted] = useState(false);
     const [email, setEmail] = useState('');
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
-  
+
     useEffect(() => {
-      setMounted(true);
-      const timer = setTimeout(() => {
-        setIsVisible(true);
-      }, 300);
-      return () => clearTimeout(timer);
+        setMounted(true);
+        const timer = setTimeout(() => {
+            setIsVisible(true);
+        }, 300);
+        return () => clearTimeout(timer);
     }, []);
 
-    const saveToGoogleSheets = async (email) => {
-      try {
-        console.log('Attempting to save email:', email);
-    
-        const response = await fetch('/api/submit-email/route', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ 
-            email,
-            timestamp: new Date().toISOString(),
-          }),
-        });
-    
-        // Log the raw response
-        console.log('Raw response:', response);
-        
-        // Get response text first
-        const responseText = await response.text();
-        console.log('Response text:', responseText);
-        
-        // Try to parse it as JSON
-        let data;
-        try {
-          data = JSON.parse(responseText);
-        } catch (parseError) {
-          console.error('Failed to parse response as JSON:', parseError);
-          console.log('Raw response text:', responseText);
-          throw new Error('Invalid server response');
-        }
-    
-        if (!response.ok) {
-          throw new Error(data.message || data.error || 'Failed to save to Google Sheets');
-        }
-    
-        return data;
-      } catch (error) {
-        console.error('Error in saveToGoogleSheets:', {
-          name: error.name,
-          message: error.message,
-          cause: error.cause,
-          stack: error.stack
-        });
-        throw error;
-      }
-    };
-
     const handleSubmit = async (e) => {
-      e.preventDefault();
-      if (!email) return;
-      
-      setIsLoading(true);
-      
-      try {
-        // Debug log to verify environment variables
-        console.log('EmailJS Config:', {
-          hasServiceId: !!process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
-          hasTemplateId: !!process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID,
-          hasUserId: !!process.env.NEXT_PUBLIC_EMAILJS_USER_ID
-        });
-    
-        // First, save to Google Sheets
-        const sheetsResponse = await saveToGoogleSheets(email);
-        console.log('Google Sheets Response:', sheetsResponse);
-    
-        // Then send email using EmailJS
-        const result = await emailjs.send(
-          process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
-          process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID,
-          { 
-            to_email: email,
-            reply_to: email,
-            to_name: email.split('@')[0],
-            message: "Thank you for joining our waitlist! We'll keep you updated on our launch."
-          },
-          process.env.NEXT_PUBLIC_EMAILJS_USER_ID
-        );
-    
-        console.log('EmailJS Response:', result);
-    
-        if (result.text === 'OK') {
-          setIsSubmitted(true);
+        e.preventDefault();
+        if (!email) return;
+        
+        setIsLoading(true);
+        
+        try {
+            // Send to Formspree
+            const formspreeResponse = await fetch(FORMSPREE_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    email,
+                    submittedAt: new Date().toISOString()
+                })
+            });
+
+            if (!formspreeResponse.ok) {
+                throw new Error('Failed to submit to Formspree');
+            }
+
+            // If Formspree successful, send welcome email
+            const emailResult = await emailjs.send(
+                process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
+                process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID,
+                { 
+                    to_email: email,
+                    reply_to: email,
+                    to_name: email.split('@')[0],
+                    message: "Thank you for joining our waitlist! We'll keep you updated on our launch.",
+                    email_subject: "Welcome to TALLA Waitlist!"
+                },
+                process.env.NEXT_PUBLIC_EMAILJS_USER_ID
+            );
+
+            if (emailResult.text === 'OK') {
+                setIsSubmitted(true);
+                setEmail('');
+            }
+        } catch (error) {
+            console.error('Error details:', {
+                message: error.message,
+                name: error.name,
+                stack: error.stack
+            });
+            
+            let errorMessage = 'There was an error processing your request. Please try again.';
+            if (error.status === 400) {
+                errorMessage = 'Invalid email address. Please check and try again.';
+            } else if (error.status === 429) {
+                errorMessage = 'Too many requests. Please try again in a few minutes.';
+            }
+            
+            alert(errorMessage);
+        } finally {
+            setIsLoading(false);
         }
-      } catch (error) {
-        console.error('Detailed Error:', {
-          name: error.name,
-          message: error.message,
-          stack: error.stack,
-          response: error.response
-        });
-    
-        alert('There was an error processing your request. Please try again.');
-      } finally {
-        setIsLoading(false);
-      }
     };
     
     const COLORS = {
@@ -243,7 +209,7 @@ function WaitlistContent() {
                     className="text-3xl md:text-4xl font-bold"
                     style={{ color: COLORS.main }}
                   >
-                    Join the Future
+                    Join the Future.
                   </h1>
                   
                   <p style={{ color: `${COLORS.text}CC` }} className="text-lg">
