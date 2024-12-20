@@ -3,7 +3,29 @@ import { NextResponse } from 'next/server';
 
 export async function POST(req) {
   try {
-    const { email, timestamp } = await req.json();
+    // Log the incoming request
+    console.log('Received request');
+    
+    let body;
+    try {
+      body = await req.json();
+      console.log('Request body:', body);
+    } catch (parseError) {
+      console.error('Failed to parse request body:', parseError);
+      return NextResponse.json({
+        success: false,
+        message: 'Invalid request body'
+      }, { status: 400 });
+    }
+
+    const { email, timestamp } = body;
+
+    if (!email || !timestamp) {
+      return NextResponse.json({
+        success: false,
+        message: 'Email and timestamp are required'
+      }, { status: 400 });
+    }
 
     // Debug log the environment variables (redacted for security)
     console.log('Environment variables check:', {
@@ -75,22 +97,6 @@ export async function POST(req) {
         stack: sheetsError.stack
       });
 
-      if (sheetsError.code === 403) {
-        return NextResponse.json({
-          success: false,
-          message: 'Permission denied. Please check service account permissions.',
-          error: sheetsError.message
-        }, { status: 403 });
-      }
-
-      if (sheetsError.code === 404) {
-        return NextResponse.json({
-          success: false,
-          message: 'Spreadsheet not found. Please check SHEET_ID.',
-          error: sheetsError.message
-        }, { status: 404 });
-      }
-
       return NextResponse.json({
         success: false,
         message: 'Error accessing Google Sheets',
@@ -100,13 +106,16 @@ export async function POST(req) {
 
   } catch (error) {
     console.error('API Route Error:', {
+      name: error.name,
       message: error.message,
       stack: error.stack
     });
 
+    // Ensure we're always returning a valid JSON response
     return NextResponse.json({
       success: false,
-      message: error.message
+      message: 'Internal server error',
+      error: error.message
     }, { status: 500 });
   }
 }

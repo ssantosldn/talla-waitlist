@@ -35,6 +35,8 @@ function WaitlistContent() {
 
     const saveToGoogleSheets = async (email) => {
       try {
+        console.log('Attempting to save email:', email); // Debug log
+    
         const response = await fetch('/api/submit-email', {
           method: 'POST',
           headers: {
@@ -45,17 +47,32 @@ function WaitlistContent() {
             timestamp: new Date().toISOString(),
           }),
         });
-
-        const data = await response.json();
-        console.log('Server response:', data); // Debug log
-
+    
+        // Log the raw response
+        console.log('Raw response:', response);
+        
+        // Get response text first
+        const responseText = await response.text();
+        console.log('Response text:', responseText);
+        
+        // Try to parse it as JSON
+        let data;
+        try {
+          data = JSON.parse(responseText);
+        } catch (parseError) {
+          console.error('Failed to parse response as JSON:', parseError);
+          console.log('Raw response text:', responseText);
+          throw new Error('Invalid server response');
+        }
+    
         if (!response.ok) {
           throw new Error(data.message || data.error || 'Failed to save to Google Sheets');
         }
-
+    
         return data;
       } catch (error) {
-        console.error('Error details:', {
+        console.error('Error in saveToGoogleSheets:', {
+          name: error.name,
           message: error.message,
           cause: error.cause,
           stack: error.stack
@@ -226,7 +243,7 @@ function WaitlistContent() {
                     className="text-3xl md:text-4xl font-bold"
                     style={{ color: COLORS.main }}
                   >
-                    Join the Future
+                    Join the Future.
                   </h1>
                   
                   <p style={{ color: `${COLORS.text}CC` }} className="text-lg">
