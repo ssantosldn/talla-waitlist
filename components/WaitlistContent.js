@@ -108,17 +108,17 @@ function WaitlistContent() {
     const socialLinks = [
       {
         Icon: Instagram,
-        url: 'https://instagram.com/your_handle',
+        url: 'https://www.instagram.com/weusetalla',
         label: 'Instagram'
       },
       {
         Icon: Twitter,
-        url: 'https://twitter.com/your_handle',
+        url: 'https://twitter.com/weusetalla',
         label: 'Twitter'
       },
       {
         Icon: LinkedinIcon,
-        url: 'https://linkedin.com/company/your_company',
+        url: 'https://www.linkedin.com/company/usetalla/',
         label: 'LinkedIn'
       },
       {
@@ -209,7 +209,7 @@ function WaitlistContent() {
                     className="text-3xl md:text-4xl font-bold"
                     style={{ color: COLORS.main }}
                   >
-                    Join the Future.
+                    Join the Future
                   </h1>
                   
                   <p style={{ color: `${COLORS.text}CC` }} className="text-lg">
