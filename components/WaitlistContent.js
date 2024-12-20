@@ -16,7 +16,7 @@ import { Logo } from "@/components/Logo";
 import Image from 'next/image';
 
 // Initialize EmailJS
-emailjs.init(process.env.EMAILJS_USER_ID);
+emailjs.init(process.env.NEXT_PUBLIC_EMAILJS_USER_ID);
 
 function WaitlistContent() {
     const [mounted, setMounted] = useState(false);
@@ -71,10 +71,17 @@ function WaitlistContent() {
       setIsLoading(true);
       
       try {
+        // Debug log to verify environment variables
+        console.log('EmailJS Config:', {
+          hasServiceId: !!process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
+          hasTemplateId: !!process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID,
+          hasUserId: !!process.env.NEXT_PUBLIC_EMAILJS_USER_ID
+        });
+    
         // First, save to Google Sheets
         const sheetsResponse = await saveToGoogleSheets(email);
         console.log('Google Sheets Response:', sheetsResponse);
-
+    
         // Then send email using EmailJS
         const result = await emailjs.send(
           process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
@@ -83,34 +90,30 @@ function WaitlistContent() {
             to_email: email,
             reply_to: email,
             to_name: email.split('@')[0],
-            message: "Thank you for joining our waitlist! We&apos;ll keep you updated on our launch."
+            message: "Thank you for joining our waitlist! We'll keep you updated on our launch."
           },
           process.env.NEXT_PUBLIC_EMAILJS_USER_ID
         );
-
+    
+        console.log('EmailJS Response:', result);
+    
         if (result.text === 'OK') {
           setIsSubmitted(true);
         }
       } catch (error) {
-        console.error('Error:', error);
-        let errorMessage = 'There was an error processing your request. Please try again.';
-        
-        // Handle specific error messages from the API
-        if (error.message.includes('Permission denied')) {
-          errorMessage = 'Our system is temporarily unable to process your request. The team has been notified.';
-          console.error('Permission error - please check Google Sheet permissions');
-        } else if (error.status === 400) {
-          errorMessage = 'Invalid email address. Please check and try again.';
-        } else if (error.status === 429) {
-          errorMessage = 'Too many requests. Please try again in a few minutes.';
-        }
-        
-        alert(errorMessage);
+        console.error('Detailed Error:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+          response: error.response
+        });
+    
+        alert('There was an error processing your request. Please try again.');
       } finally {
         setIsLoading(false);
       }
     };
-
+    
     const COLORS = {
       background: '#F6F6F6',
       card: '#FFFFFF',
